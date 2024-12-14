@@ -1,0 +1,10 @@
+services:
+  ssh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bashform-ssh
+    ports:
+      - "22:22"
+    restart: always
+
