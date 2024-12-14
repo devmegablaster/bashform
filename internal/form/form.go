@@ -83,7 +83,7 @@ func (m *Model) View() string {
 		lipgloss.Center,
 		lipgloss.JoinVertical(
 			lipgloss.Center,
-			lipgloss.NewStyle().Foreground(lipgloss.Color("#3b82f6")).Bold(true).Underline(true).Render(m.Form.Name),
+			lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")).Bold(true).Underline(true).Render(m.Form.Name),
 			lipgloss.NewStyle().Foreground(lipgloss.Color("#64748b")).MarginBottom(1).Render(m.Form.Description),
 			box,
 		))
