@@ -13,7 +13,10 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
+	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/logging"
+
+	"github.com/devmegablaster/bashform/cmd"
 	"github.com/devmegablaster/bashform/internal/config"
 )
 
@@ -29,12 +32,17 @@ func main() {
 		}),
 		wish.WithMiddleware(
 			func(next ssh.Handler) ssh.Handler {
-				return func(sess ssh.Session) {
-					// TODO: Application Here
+				return func(s ssh.Session) {
+					cli := cmd.NewCLI(cfg, s)
+					cli.Init()
+					if err := cli.Run(); err != nil {
+						log.Error("Could not run command", "error", err)
+					}
 
-					next(sess)
+					next(s)
 				}
 			},
+			activeterm.Middleware(),
 			logging.Middleware(),
 		),
 	)

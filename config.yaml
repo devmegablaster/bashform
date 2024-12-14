@@ -1,0 +1,6 @@
+ssh:
+  host: localhost
+  port: 5555
+
+api:
+  base_url: http://localhost:8000
