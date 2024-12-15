@@ -8,4 +8,8 @@ services:
     ports:
       - "22:22"
     restart: always
-
+    netowrks:
+      - bashform
+networks:
+  bashform:
+    name: bashform
