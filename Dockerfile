@@ -8,7 +8,9 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./main ./cmd/api/
+ENV TERM=xterm-256color
+
+RUN go build -o ./main .
 
 EXPOSE 22
 

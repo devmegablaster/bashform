@@ -16,6 +16,13 @@ type Form struct {
 	Questions   []Question `json:"questions"`
 }
 
+type FormRequest struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Code        string            `json:"code"`
+	Questions   []QuestionRequest `json:"questions"`
+}
+
 type Question struct {
 	ID      string   `json:"id"`
 	Text    string   `json:"text"`
@@ -23,8 +30,18 @@ type Question struct {
 	Options []Option `json:"options"`
 }
 
+type QuestionRequest struct {
+	Text    string          `json:"text"`
+	Type    string          `json:"type"`
+	Options []OptionRequest `json:"options"`
+}
+
 type Option struct {
 	ID   string `json:"id"`
+	Text string `json:"text"`
+}
+
+type OptionRequest struct {
 	Text string `json:"text"`
 }
 

@@ -1,5 +1,6 @@
 services:
   ssh:
+    tty: true
     build:
       context: .
       dockerfile: Dockerfile

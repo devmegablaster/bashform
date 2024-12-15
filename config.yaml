@@ -1,6 +1,6 @@
 ssh:
   host: 0.0.0.0
-  port: 22
+  port: 23
 
 api:
-  base_url: http://bashform-api:8000
+  base_url: http://localhost:8000

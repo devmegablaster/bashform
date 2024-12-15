@@ -52,6 +52,7 @@ func (c *CLI) Init() {
 
 	// Add Commands
 	c.AddCommand(c.Form())
+	c.AddCommand(c.Create())
 }
 
 func (c *CLI) Run() error {

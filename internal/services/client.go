@@ -23,10 +23,10 @@ func NewClient(baseUrl string, pubKey string) *Client {
 	}
 }
 
-func (c *Client) GetForm(code string) models.Form {
+func (c *Client) GetForm(code string) (models.Form, error) {
 	req, err := http.NewRequest("GET", c.BaseUrl+"/forms/"+code, nil)
 	if err != nil {
-		panic(err)
+		return models.Form{}, err
 	}
 
 	req.Header.Add("PubKey", c.PubKey)
@@ -34,7 +34,7 @@ func (c *Client) GetForm(code string) models.Form {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return models.Form{}
+		return models.Form{}, err
 	}
 
 	defer resp.Body.Close()
@@ -42,10 +42,10 @@ func (c *Client) GetForm(code string) models.Form {
 	var formResponse models.FormResponse
 	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
 		fmt.Println(err)
-		return models.Form{}
+		return models.Form{}, err
 	}
 
-	return formResponse.Data
+	return formResponse.Data, nil
 }
 
 func (c *Client) SubmitForm(code string, response models.Response) {
@@ -71,4 +71,41 @@ func (c *Client) SubmitForm(code string, response models.Response) {
 	}
 
 	defer resp.Body.Close()
+}
+
+func (c *Client) CreateForm(form models.FormRequest) (*models.FormResponse, error) {
+	reqBody, err := json.Marshal(form)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", c.BaseUrl+"/forms", bytes.NewBuffer(reqBody))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	req.Header.Add("PubKey", c.PubKey)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+
+	var formResponse models.FormResponse
+	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &formResponse, nil
 }

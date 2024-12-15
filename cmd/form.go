@@ -17,15 +17,18 @@ func (c *CLI) Form() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			client := services.NewClient(c.cfg.Api.BaseUrl, c.PubKey)
-			formData := client.GetForm(args[0])
+			formData, err := client.GetForm(args[0])
+			if err != nil {
+				cmd.Println("Form not found...")
+				return nil
+			}
 
 			model := form.NewModel(formData, client, c.Session)
 			p := tea.NewProgram(model,
-				tea.WithMouseCellMotion(),
 				tea.WithInput(cmd.InOrStdin()),
 				tea.WithOutput(cmd.OutOrStdout()),
 			)
-			_, err := p.Run()
+			_, err = p.Run()
 			return err
 		},
 	}
