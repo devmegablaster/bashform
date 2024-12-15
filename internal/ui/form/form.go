@@ -1,26 +1,29 @@
 package form
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/models"
 	"github.com/devmegablaster/bashform/internal/services"
+	"github.com/devmegablaster/bashform/internal/styles"
 )
 
 type Model struct {
-	width         int
-	height        int
+	width, height int
 	Form          models.Form
+	session       ssh.Session
 	client        *services.Client
 	huhForm       *huh.Form
 	spinner       spinner.Model
+
 	isSubmitting  bool
+	sizeError     bool
 	submitError   error
 	submitSuccess bool
 	init          bool
@@ -30,19 +33,26 @@ type Model struct {
 func NewModel(form models.Form, client *services.Client, session ssh.Session) *Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e"))
+	s.Style = styles.Succes
 
 	pty, _, _ := session.Pty()
 
+	sizeErr := false
+	if pty.Window.Width < 50 || pty.Window.Height < 35 {
+		sizeErr = true
+	}
+
 	return &Model{
-		Form:     form,
-		huhForm:  form.ToHuhForm(),
-		spinner:  s,
-		client:   client,
-		width:    pty.Window.Width,
-		height:   pty.Window.Height,
-		init:     true,
-		initTime: time.Now(),
+		Form:      form,
+		huhForm:   form.ToHuhForm(),
+		spinner:   s,
+		client:    client,
+		width:     pty.Window.Width,
+		height:    pty.Window.Height,
+		session:   session,
+		init:      true,
+		sizeError: sizeErr,
+		initTime:  time.Now(),
 	}
 }
 
@@ -56,45 +66,35 @@ func (m *Model) View() string {
 	content = m.huhForm.View()
 
 	if m.isSubmitting {
-		content = m.spinner.View() + "\n Submitting your response..."
+		content = m.spinner.View() + "\n" + styles.Description.Render(constants.MessageFormSubmitting)
 	}
 
 	if m.submitSuccess {
-		successMsg := lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")).Bold(true).Render("Form submitted successfully!")
-		helpMsg := lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render("q or ctrl+c to exit")
-
-		content = successMsg + "\n\n" + helpMsg
+		content = styles.Succes.Render(constants.MessageFormSubmitted) + "\n\n" + styles.Description.Render(constants.MessageHelpExit)
 	}
 
 	if m.init {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, constants.Logo)
+		return styles.PlaceCenter(m.width, m.height, constants.Logo)
 	}
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#94a3b8")).
-		Align(lipgloss.Center).
-		Padding(1, 2).
-		Render(content)
+	if m.sizeError {
+		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, m.width, m.height))
+	}
 
-	return lipgloss.Place(
-		m.width,
+	box := styles.Box(m.width, content)
+
+	return styles.PlaceCenterVertical(m.width,
 		m.height,
-		lipgloss.Center,
-		lipgloss.Center,
-		lipgloss.JoinVertical(
-			lipgloss.Center,
-			lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")).Bold(true).Underline(true).Render(m.Form.Name),
-			lipgloss.NewStyle().Foreground(lipgloss.Color("#64748b")).MarginBottom(1).Render(m.Form.Description),
-			box,
-		))
+		styles.Heading.Render(m.Form.Name),
+		styles.Description.MarginBottom(1).Render(m.Form.Description),
+		box,
+	)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	// Handle key presses for exit
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit

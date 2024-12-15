@@ -13,6 +13,7 @@ type Config struct {
 }
 
 type SSHConfig struct {
+	URL  string `mapstructure:"url"`
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
 }

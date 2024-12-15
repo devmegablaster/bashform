@@ -1,12 +1,14 @@
 package constants
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/devmegablaster/bashform/internal/styles"
+)
 
-const asciiArt = `
+const logoArt = `
    ___           __   ____             
   / _ )___ ____ / /  / __/__  ______ _ 
  / _  / _ /(_-</ _ \/ _// _ \/ __/  ' \
 /____/\_,_/___/_//_/_/  \___/_/ /_/_/_/
 `
 
-var Logo string = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e")).Render(asciiArt)
+var Logo string = styles.Logo.Render(logoArt)

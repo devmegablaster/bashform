@@ -4,10 +4,6 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-type FormResponse struct {
-	Data Form `json:"data"`
-}
-
 type Form struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -16,33 +12,15 @@ type Form struct {
 	Questions   []Question `json:"questions"`
 }
 
+type FormResponse struct {
+	Data Form `json:"data"`
+}
+
 type FormRequest struct {
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Code        string            `json:"code"`
 	Questions   []QuestionRequest `json:"questions"`
-}
-
-type Question struct {
-	ID      string   `json:"id"`
-	Text    string   `json:"text"`
-	Type    string   `json:"type"`
-	Options []Option `json:"options"`
-}
-
-type QuestionRequest struct {
-	Text    string          `json:"text"`
-	Type    string          `json:"type"`
-	Options []OptionRequest `json:"options"`
-}
-
-type Option struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-}
-
-type OptionRequest struct {
-	Text string `json:"text"`
 }
 
 func (f Form) ToHuhForm() *huh.Form {

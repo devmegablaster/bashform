@@ -6,9 +6,10 @@ import (
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/devmegablaster/bashform/internal/create"
+	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/services"
+	"github.com/devmegablaster/bashform/internal/styles"
+	"github.com/devmegablaster/bashform/internal/ui/create"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +27,8 @@ func (c *CLI) Create() *cobra.Command {
 			}
 
 			if n < 1 {
-				return fmt.Errorf("number of questions must be greater than 0")
+				cmd.Println(styles.Error.Render("number of questions must be greater than 0"))
+				return nil
 			}
 
 			var code string
@@ -42,15 +44,15 @@ func (c *CLI) Create() *cobra.Command {
 			check, err := client.GetForm(code)
 
 			if err != nil {
-				cmd.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444")).Render("\nError checking code...\n"))
+				cmd.Println(styles.Error.Render("\nError checking code\n"))
 			}
 
 			if check.Code != "" {
-				cmd.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444")).Render("\nA Form with that code already exists!\n"))
+				cmd.Println(styles.Error.Render(constants.MessageErrorCodeAlreadyExists))
 				return nil
 			}
 
-			cr := create.NewModel(c.Session, n, code, client)
+			cr := create.NewModel(c.cfg, c.Session, n, code, client)
 
 			p := tea.NewProgram(cr,
 				tea.WithAltScreen(),
