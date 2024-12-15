@@ -64,10 +64,10 @@ Replace `<num_of_questions>` with the number of questions you want in the form, 
 ### Creating a Form
 
 ```bash
-ssh -t bashform.me create 5 myform
+ssh -t bashform.me create 2 myform
 ```
 
-This creates a form with 5 questions and the code `myform`.
+This creates a form with 2 questions and the code `myform`.
 
 ### Filling Out a Form
 
@@ -76,6 +76,14 @@ ssh -t bashform.me form myform
 ```
 
 This allows you to respond to the form with the code `myform`.
+
+## Try It Out
+
+You can try out Bashform by using the following commands:
+
+```bash
+ssh -t bashform.me f devmegablaster
+```
 
 ## Contributing
 
