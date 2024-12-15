@@ -18,6 +18,8 @@ Bashform leverages SSH to provide a simple and secure interface for creating and
 - **Form Filling**: Respond to forms securely via SSH using the assigned code.
 - **Form Responses**: Retrieve form responses, allowing for easy data collection.
 
+![Bashform in Action](/images/open.gif)
+
 ## Installation
 
 There is no installation required for using Bashform. As long as you have SSH access, you can:
@@ -46,6 +48,8 @@ ssh -t bashform.me f <code>
 ```
 
 Replace `<code>` with the unique code of the form you wish to fill out.
+
+![Filling Out a Form](/images/form.gif)
 
 ### Create a New Form
 
