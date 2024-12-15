@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/models"
 )
 
@@ -13,9 +14,9 @@ func questionForm(index int) *huh.Group {
 		huh.NewSelect[string]().
 			Title("Question Type").
 			Options(
-				huh.NewOption("Text", "text"),
-				huh.NewOption("Textarea", "textarea"),
-				huh.NewOption("Select", "select"),
+				huh.NewOption("Text", constants.FIELD_TEXT),
+				huh.NewOption("Textarea", constants.FIELD_TEXTAREA),
+				huh.NewOption("Select", constants.FIELD_SELECT),
 			).Key(fmt.Sprintf("type%d", index)).Validate(huh.ValidateNotEmpty()),
 		huh.NewInput().Title("Question").Key(fmt.Sprintf("question%d", index)).Validate(huh.ValidateNotEmpty()),
 		huh.NewInput().Title("Options (comma separated) [For select questions only]").Key(fmt.Sprintf("options%d", index)),
@@ -30,7 +31,7 @@ func starterForm(n int) *huh.Form {
 	}
 
 	questions = append(questions, huh.NewGroup(
-		huh.NewConfirm().Title("Allow multiple submissions by a user?").Key("allowMultiple"),
+		huh.NewConfirm().Title("Allow multiple submissions by a user?").Key("multiple"),
 	))
 
 	allGroups := append([]*huh.Group{
@@ -50,12 +51,12 @@ func huhToForm(n int, huhForm *huh.Form) *models.FormRequest {
 
 	for i := 0; i < n; i++ {
 		question := models.QuestionRequest{
-			Text: huhForm.GetString(fmt.Sprintf("question%d", i)),
-			Type: huhForm.GetString(fmt.Sprintf("type%d", i)),
-			// Required: huhForm.GetBool(fmt.Sprintf("required%d", i)),
+			Text:     huhForm.GetString(fmt.Sprintf("question%d", i)),
+			Type:     huhForm.GetString(fmt.Sprintf("type%d", i)),
+			Required: huhForm.GetBool(fmt.Sprintf("required%d", i)),
 		}
 
-		if question.Type == "select" {
+		if question.Type == constants.FIELD_SELECT {
 			optsStr := huhForm.GetString(fmt.Sprintf("options%d", i))
 			optionRequests := []models.OptionRequest{}
 
@@ -74,7 +75,7 @@ func huhToForm(n int, huhForm *huh.Form) *models.FormRequest {
 		Name:        huhForm.GetString("name"),
 		Description: huhForm.GetString("description"),
 		Questions:   questions,
-		// AllowMultiple: huhForm.GetBool("allowMultiple"),
+		Multiple:    huhForm.GetBool("multiple"),
 	}
 
 	return &formRequest

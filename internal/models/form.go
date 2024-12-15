@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/charmbracelet/huh"
+	"github.com/devmegablaster/bashform/internal/constants"
 )
 
 type Form struct {
@@ -10,6 +11,7 @@ type Form struct {
 	Description string     `json:"description"`
 	Code        string     `json:"code"`
 	Questions   []Question `json:"questions"`
+	Multiple    bool       `json:"multiple"`
 }
 
 type FormResponse struct {
@@ -21,6 +23,7 @@ type FormRequest struct {
 	Description string            `json:"description"`
 	Code        string            `json:"code"`
 	Questions   []QuestionRequest `json:"questions"`
+	Multiple    bool              `json:"multiple"`
 }
 
 func (f Form) ToHuhForm() *huh.Form {
@@ -28,18 +31,33 @@ func (f Form) ToHuhForm() *huh.Form {
 
 	for _, question := range f.Questions {
 		switch question.Type {
-		case "text":
-			fields = append(fields, huh.NewInput().Title(question.Text).Key(question.ID))
-		case "textarea":
-			fields = append(fields, huh.NewText().Title(question.Text).Key(question.ID))
-		case "select":
+		case constants.FIELD_TEXT:
+			field := huh.NewInput().Title(question.Text).Key(question.ID)
+			if question.Required {
+				field = field.Validate(huh.ValidateNotEmpty())
+			}
+			fields = append(fields, field)
+
+		case constants.FIELD_TEXTAREA:
+			field := huh.NewText().Title(question.Text).Key(question.ID)
+			if question.Required {
+				field = field.Validate(huh.ValidateNotEmpty())
+			}
+			fields = append(fields, field)
+
+		case constants.FIELD_SELECT:
 			options := make([]string, len(question.Options))
 			for i, option := range question.Options {
 				options[i] = option.Text
 			}
 
 			opts := huh.NewOptions(options...)
-			fields = append(fields, huh.NewSelect[string]().Title(question.Text).Options(opts...).Key(question.ID))
+
+			field := huh.NewSelect[string]().Title(question.Text).Options(opts...).Key(question.ID)
+			if question.Required {
+				field = field.Validate(huh.ValidateNotEmpty())
+			}
+			fields = append(fields, field)
 		}
 	}
 
