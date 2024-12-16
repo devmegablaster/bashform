@@ -18,7 +18,9 @@ Bashform leverages SSH to provide a simple and secure interface for creating and
 - **Form Filling**: Respond to forms securely via SSH using the assigned code.
 - **Form Responses**: Retrieve form responses, allowing for easy data collection.
 
-![Bashform in Action](/images/open.gif)
+<p align="center">
+    <img height="400" src="/images/open.gif">
+</p>
 
 ## Installation
 
@@ -49,7 +51,9 @@ ssh -t bashform.me f <code>
 
 Replace `<code>` with the unique code of the form you wish to fill out.
 
-![Filling Out a Form](/images/form.gif)
+<p align="center">
+    <img height="600" src="/images/form.gif">
+</p>
 
 ### Create a New Form
 
@@ -62,6 +66,24 @@ ssh -t bashform.me c <num_of_questions> <code>
 ```
 
 Replace `<num_of_questions>` with the number of questions you want in the form, and `<code>` with the unique code for your form.
+
+<p align="center">
+    <img height="600" src="/images/create.gif">
+</p>
+
+### Get Forms and Responses
+
+To get a list of forms and responses, use the following command:
+
+```bash
+ssh -t bashform.me forms
+```
+
+This will display a list of forms and by selecting a form, you can view the responses.
+
+<p align="center">
+    <img height="600" src="/images/forms.gif">
+</p>
 
 ## Example
 
@@ -80,6 +102,12 @@ ssh -t bashform.me form myform
 ```
 
 This allows you to respond to the form with the code `myform`.
+
+### Getting Form Responses
+
+```bash
+ssh -t bashform.me forms
+```
 
 ## Try It Out
 
