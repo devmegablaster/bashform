@@ -4,7 +4,7 @@ const (
 	MessageFormNotFound           = "Form not found!"
 	MessageFormSubmitted          = "Your response has been submitted!"
 	MessageFormSubmitting         = "Submitting Your response..."
-	MessageSizeError              = "Please resize your terminal to a minimum of 50x35 and run again | Current session size - %dx%d"
+	MessageSizeError              = "Please resize your terminal to a minimum of %dx%d and run again | Current session size - %dx%d"
 	MessageHelpExit               = "q or ctrl+c to exit"
 	MessageFormCreated            = "Form created successfully!"
 	MessageFormCreating           = "Creating your form..."
