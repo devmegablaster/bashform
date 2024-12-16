@@ -48,6 +48,31 @@ func (c *Client) GetForm(code string) (models.Form, error) {
 	return formResponse.Data, nil
 }
 
+func (c *Client) GetForms() ([]models.Form, error) {
+	req, err := http.NewRequest("GET", c.BaseUrl+"/forms", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("PubKey", c.PubKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var formResponse models.FormsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return formResponse.Data, nil
+}
+
 func (c *Client) SubmitForm(code string, response models.Response) {
 	reqBody, err := json.Marshal(response)
 	if err != nil {
@@ -108,4 +133,29 @@ func (c *Client) CreateForm(form models.FormRequest) (*models.FormResponse, erro
 	}
 
 	return &formResponse, nil
+}
+
+func (c *Client) GetResponses(formID string) (*models.Form, error) {
+	req, err := http.NewRequest("GET", c.BaseUrl+"/forms/"+formID+"/responses", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("PubKey", c.PubKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var responseResponse models.FormResponse
+	if err := json.NewDecoder(resp.Body).Decode(&responseResponse); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &responseResponse.Data, nil
 }

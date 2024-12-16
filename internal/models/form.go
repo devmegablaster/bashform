@@ -11,6 +11,7 @@ type Form struct {
 	Description string     `json:"description"`
 	Code        string     `json:"code"`
 	Questions   []Question `json:"questions"`
+	Responses   []Response `json:"responses"`
 	Multiple    bool       `json:"multiple"`
 }
 
