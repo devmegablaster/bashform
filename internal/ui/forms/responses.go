@@ -91,7 +91,7 @@ func (m *responsesModel) View() string {
 		"\n" +
 		baseStyle.Render(m.table.View()) +
 		"\n\n" +
-		styles.Description.Render("Press ESC to go back")
+		styles.Description.Render("Enter - View Response | Press ESC to go back")
 
 	return styles.PlaceCenter(m.width, m.height, content)
 }
