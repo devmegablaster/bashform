@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *CLI) Create() *cobra.Command {
+func (c *CLI) CreateForm() *cobra.Command {
 	newFormCmd := &cobra.Command{
 		Use:     "create [number of questions] [share code]",
 		Args:    cobra.ExactArgs(2),

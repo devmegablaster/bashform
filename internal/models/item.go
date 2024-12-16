@@ -4,7 +4,6 @@ type Item struct {
 	ID   string
 	Name string
 	Desc string
-	Code string
 }
 
 func (i Item) Title() string       { return i.Name }

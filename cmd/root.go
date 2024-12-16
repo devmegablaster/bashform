@@ -51,8 +51,8 @@ func (c *CLI) Init() {
 	c.RootCmd.SetContext(c.Session.Context())
 
 	// Add Commands
-	c.AddCommand(c.Form())
-	c.AddCommand(c.Create())
+	c.AddCommand(c.FillForm())
+	c.AddCommand(c.CreateForm())
 	c.AddCommand(c.GetForms())
 }
 

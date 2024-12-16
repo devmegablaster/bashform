@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *CLI) Form() *cobra.Command {
+func (c *CLI) FillForm() *cobra.Command {
 	formCmd := &cobra.Command{
 		Use:          "form [code]",
 		Short:        "Fill out a form using form code",
