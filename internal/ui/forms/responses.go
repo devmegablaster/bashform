@@ -87,11 +87,12 @@ func (m *responsesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *responsesModel) View() string {
-	content := styles.Heading.Render("Responses") +
-		"\n" +
-		baseStyle.Render(m.table.View()) +
-		"\n\n" +
-		styles.Description.Render("Enter - View Response | Press ESC to go back")
+	content :=
+		styles.Heading.Render("Responses") +
+			"\n" +
+			baseStyle.Render(m.table.View()) +
+			"\n\n" +
+			styles.Description.Render("Enter - View Response | Press ESC to go back")
 
 	return styles.PlaceCenter(m.width, m.height, content)
 }
@@ -110,7 +111,7 @@ func (m *responsesModel) GetResponses() {
 	for _, question := range m.Form.Questions {
 		columns = append(columns, table.Column{
 			Title: question.Text,
-			Width: 15,
+			Width: m.width / (len(m.Form.Questions) + 4),
 		})
 		order = append(order, question.ID)
 	}

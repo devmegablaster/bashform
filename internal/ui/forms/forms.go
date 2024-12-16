@@ -3,7 +3,6 @@ package forms
 import (
 	"time"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
@@ -41,15 +40,14 @@ func newFormsModel(items []models.Item, client *services.Client, session ssh.Ses
 		listItems[i] = item
 	}
 
-	list := list.New(listItems, list.NewDefaultDelegate(), 0, 0)
+	l := list.New(listItems, list.NewDefaultDelegate(), 0, 0)
 
-	list.SetSize(pty.Window.Width, 25)
-	list.SetShowTitle(false)
-	h := help.New()
-	list.Help = h
+	l.SetSize(pty.Window.Width, 25)
+	l.SetShowTitle(false)
+
 	return &formsModel{
 		Items:     items,
-		list:      list,
+		list:      l,
 		client:    client,
 		width:     pty.Window.Width,
 		height:    pty.Window.Height,

@@ -21,9 +21,9 @@ func TableStyle() table.Styles {
 		BorderBottom(true).
 		Bold(false)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
+		Foreground(lipgloss.Color("#000000")).
+		Background(lipgloss.Color("#16a34a")).
+		Bold(true)
 
 	return s
 }
