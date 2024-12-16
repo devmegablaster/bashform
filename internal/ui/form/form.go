@@ -61,6 +61,10 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
+	if m.sizeError {
+		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, 50, 35, m.width, m.height))
+	}
+
 	var content string
 
 	content = m.huhForm.View()
@@ -75,10 +79,6 @@ func (m *Model) View() string {
 
 	if m.init {
 		return styles.PlaceCenter(m.width, m.height, constants.Logo)
-	}
-
-	if m.sizeError {
-		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, m.width, m.height))
 	}
 
 	box := styles.Box(m.width, content)

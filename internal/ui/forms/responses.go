@@ -111,7 +111,7 @@ func (m *responsesModel) GetResponses() {
 	for _, question := range m.Form.Questions {
 		columns = append(columns, table.Column{
 			Title: question.Text,
-			Width: m.width / (len(m.Form.Questions) + 4),
+			Width: m.width / (len(m.Form.Questions) + 2),
 		})
 		order = append(order, question.ID)
 	}

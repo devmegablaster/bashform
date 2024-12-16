@@ -26,12 +26,18 @@ type Model struct {
 	isCreating bool
 	isCreated  bool
 	err        error
+	sizeError  bool
 	init       bool
 	initTime   time.Time
 }
 
 func NewModel(cfg config.Config, session ssh.Session, n int, code string, client *services.Client) *Model {
 	pty, _, _ := session.Pty()
+
+	sizeErr := false
+	if pty.Window.Width < 50 || pty.Window.Height < 30 {
+		sizeErr = true
+	}
 
 	return &Model{
 		width:         pty.Window.Width,
@@ -42,8 +48,9 @@ func NewModel(cfg config.Config, session ssh.Session, n int, code string, client
 		client:        client,
 		questionsForm: starterForm(n),
 
-		init:     true,
-		initTime: time.Now(),
+		sizeError: sizeErr,
+		init:      true,
+		initTime:  time.Now(),
 	}
 }
 
@@ -52,6 +59,9 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
+	if m.sizeError {
+		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, 50, 30, m.width, m.height))
+	}
 
 	var content string
 

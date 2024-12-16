@@ -1,11 +1,15 @@
 package forms
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
+	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/models"
 	"github.com/devmegablaster/bashform/internal/services"
+	"github.com/devmegablaster/bashform/internal/styles"
 )
 
 type sessionState int
@@ -50,19 +54,31 @@ func toResponse(questions, answers []string, formID string) tea.Cmd {
 }
 
 type Model struct {
-	state      sessionState
-	formsModel *formsModel
-	rsm        *responsesModel
-	rm         *ResponseModel
-	spinner    spinner.Model
+	width, height int
+	state         sessionState
+	formsModel    *formsModel
+	rsm           *responsesModel
+	rm            *ResponseModel
+	spinner       spinner.Model
+	sizeError     bool
 }
 
 func NewModel(items []models.Item, client *services.Client, session ssh.Session) *Model {
+	p, _, _ := session.Pty()
+
+	sizeErr := false
+	if p.Window.Width < 50 || p.Window.Height < 30 {
+		sizeErr = true
+	}
+
 	return &Model{
+		width:      p.Window.Width,
+		height:     p.Window.Height,
 		state:      formsView,
 		formsModel: newFormsModel(items, client, session),
 		rsm:        newResponsesModel(client, session),
 		rm:         NewResponseModel(session),
+		sizeError:  sizeErr,
 	}
 }
 
@@ -126,6 +142,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
+	if m.sizeError {
+		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, 50, 30, m.width, m.height))
+	}
+
 	switch m.state {
 	case formsView:
 		return m.formsModel.View()
