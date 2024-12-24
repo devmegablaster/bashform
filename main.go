@@ -26,7 +26,7 @@ func main() {
 
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(cfg.SSH.Host, strconv.Itoa(cfg.SSH.Port))),
-		wish.WithHostKeyPath(".ssh/id_ed25519"),
+		wish.WithHostKeyPath(cfg.SSH.KeyPath),
 		wish.WithPublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
 			return true
 		}),

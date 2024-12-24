@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/ssh"
 	"github.com/devmegablaster/bashform/internal/config"
+	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -18,14 +19,15 @@ type CLI struct {
 
 func NewCLI(cfg config.Config, session ssh.Session) *CLI {
 
+	// Encode the public key
 	encoded := bytes.Buffer{}
-
 	enc := base64.NewEncoder(base64.StdEncoding, &encoded)
 	enc.Write(session.PublicKey().Marshal())
 
 	rootCmd := &cobra.Command{
 		Use: "bashform",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Println(constants.Logo)
 			cmd.Help()
 			return nil
 		},
@@ -51,9 +53,9 @@ func (c *CLI) Init() {
 	c.RootCmd.SetContext(c.Session.Context())
 
 	// Add Commands
-	c.AddCommand(c.FillForm())
-	c.AddCommand(c.CreateForm())
-	c.AddCommand(c.GetForms())
+	c.AddCommand(c.fillForm())
+	c.AddCommand(c.createForm())
+	c.AddCommand(c.getForms())
 }
 
 func (c *CLI) Run() error {

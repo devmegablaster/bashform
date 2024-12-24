@@ -13,10 +13,12 @@ type Form struct {
 	Questions   []Question `json:"questions"`
 	Responses   []Response `json:"responses"`
 	Multiple    bool       `json:"multiple"`
+	Error       string     `json:"error"`
 }
 
 type FormResponse struct {
-	Data Form `json:"data"`
+	Data  Form   `json:"data"`
+	Error string `json:"error"`
 }
 
 type FormRequest struct {

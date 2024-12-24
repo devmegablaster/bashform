@@ -13,13 +13,14 @@ type Config struct {
 }
 
 type SSHConfig struct {
-	URL  string `mapstructure:"url"`
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	URL     string `mapstructure:"url"`
+	Host    string `mapstructure:"host"`
+	Port    int    `mapstructure:"port"`
+	KeyPath string `mapstructure:"key_path"`
 }
 
 type ApiConfig struct {
-	BaseUrl string `mapstructure:"base_url"`
+	BaseURL string `mapstructure:"base_url"`
 }
 
 func New() Config {
