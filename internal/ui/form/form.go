@@ -57,7 +57,7 @@ func NewModel(form models.Form, client *services.Client, session ssh.Session) *M
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, m.huhForm.Init(), tea.EnterAltScreen)
+	return tea.Batch(m.spinner.Tick, m.huhForm.Init())
 }
 
 func (m *Model) View() string {
@@ -69,16 +69,18 @@ func (m *Model) View() string {
 
 	content = m.huhForm.View()
 
-	if m.isSubmitting {
-		content = m.spinner.View() + "\n" + styles.Description.Render(constants.MessageFormSubmitting)
-	}
+	switch {
+	case m.submitError != nil:
+		content = styles.Error.Render(m.submitError.Error())
 
-	if m.submitSuccess {
-		content = styles.Succes.Render(constants.MessageFormSubmitted) + "\n\n" + styles.Description.Render(constants.MessageHelpExit)
-	}
-
-	if m.init {
+	case m.init:
 		return styles.PlaceCenter(m.width, m.height, constants.Logo)
+
+	case m.submitSuccess:
+		content = styles.Succes.Render(constants.MessageFormSubmitted) + "\n\n" + styles.Description.Render(constants.MessageHelpExit)
+
+	case m.isSubmitting:
+		content = m.spinner.View() + "\n" + styles.Description.Render(constants.MessageFormSubmitting)
 	}
 
 	box := styles.Box(m.width, content)
@@ -92,7 +94,6 @@ func (m *Model) View() string {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	// Handle key presses for exit
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -117,7 +118,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.huhForm = f
 	}
 
-	if m.huhForm.State == huh.StateCompleted && !m.isSubmitting {
+	if m.huhForm.State == huh.StateCompleted && !m.isSubmitting && !m.submitSuccess {
 		m.Submit()
 	}
 
@@ -146,7 +147,12 @@ func (m *Model) Submit() {
 		Answers: answer,
 	}
 
-	m.client.SubmitForm(m.Form.Code, response)
+	err := m.client.SubmitForm(m.Form.ID, response)
+	if err != nil {
+		m.submitError = err
+		m.isSubmitting = false
+	}
 
+	m.isSubmitting = false
 	m.submitSuccess = true
 }

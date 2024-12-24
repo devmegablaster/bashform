@@ -6,156 +6,139 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/charmbracelet/log"
+	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/models"
 )
 
 type Client struct {
-	BaseUrl    string
-	PubKey     string
+	baseURL    string
+	pubKey     string
 	httpClient *http.Client
 }
 
-func NewClient(baseUrl string, pubKey string) *Client {
+func NewClient(baseURL string, pubKey string) *Client {
 	return &Client{
-		BaseUrl:    baseUrl,
-		PubKey:     pubKey,
+		baseURL:    baseURL,
+		pubKey:     pubKey,
 		httpClient: &http.Client{},
 	}
 }
 
+// Get form by code
 func (c *Client) GetForm(code string) (models.Form, error) {
-	req, err := http.NewRequest("GET", c.BaseUrl+"/forms/"+code, nil)
-	if err != nil {
-		return models.Form{}, err
-	}
-
-	req.Header.Add("PubKey", c.PubKey)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return models.Form{}, err
-	}
-
-	defer resp.Body.Close()
-
 	var formResponse models.FormResponse
-	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
-		fmt.Println(err)
-		return models.Form{}, err
+	if err := c.doRequest(http.MethodGet, fmt.Sprintf("%s/%s", constants.API_FORMS_PATH, code), nil, &formResponse, true); err != nil {
+		log.Error(err)
+		return models.Form{}, fmt.Errorf(err.Data.Error)
 	}
 
 	return formResponse.Data, nil
 }
 
+// CodeResponse is the response from the checkCode endpoint
+type CodeResponse struct {
+	CodeData struct {
+		Avaliable bool `json:"available"`
+	} `json:"data"`
+}
+
+// Check if code is available
+func (c *Client) CheckCode(code string) (bool, error) {
+	var codeResponse CodeResponse
+	if err := c.doRequest(http.MethodGet, fmt.Sprintf("%s/%s/available", constants.API_FORMS_PATH, code), nil, &codeResponse, true); err != nil {
+		log.Error(err)
+		return false, fmt.Errorf(err.Data.Error)
+	}
+
+	return codeResponse.CodeData.Avaliable, nil
+}
+
+// Get all the forms created by the user
 func (c *Client) GetForms() ([]models.Form, error) {
-	req, err := http.NewRequest("GET", c.BaseUrl+"/forms", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("PubKey", c.PubKey)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
 	var formResponse models.FormsResponse
-	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
-		fmt.Println(err)
-		return nil, err
+	if err := c.doRequest(http.MethodGet, constants.API_FORMS_PATH, nil, &formResponse, true); err != nil {
+		log.Error(err)
+		return nil, fmt.Errorf(err.Data.Error)
 	}
 
 	return formResponse.Data, nil
 }
 
-func (c *Client) SubmitForm(code string, response models.Response) {
-	reqBody, err := json.Marshal(response)
-	if err != nil {
-		fmt.Println(err)
-		return
+// Submit a response to a form using formID and response
+func (c *Client) SubmitForm(id string, response models.Response) error {
+	if err := c.doRequest(http.MethodPost, fmt.Sprintf("%s/%s", constants.API_FORMS_PATH, id), response, nil, true); err != nil {
+		log.Error(err)
+		return fmt.Errorf(err.Data.Error)
 	}
 
-	req, err := http.NewRequest("POST", c.BaseUrl+"/forms/"+code, bytes.NewBuffer(reqBody))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	req.Header.Add("PubKey", c.PubKey)
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	defer resp.Body.Close()
+	return nil
 }
 
+// Create a form
 func (c *Client) CreateForm(form models.FormRequest) (*models.FormResponse, error) {
-	reqBody, err := json.Marshal(form)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", c.BaseUrl+"/forms", bytes.NewBuffer(reqBody))
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	req.Header.Add("PubKey", c.PubKey)
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	defer resp.Body.Close()
-
 	var formResponse models.FormResponse
-	if err := json.NewDecoder(resp.Body).Decode(&formResponse); err != nil {
-		fmt.Println(err)
-		return nil, err
+	if err := c.doRequest(http.MethodPost, constants.API_FORMS_PATH, form, &formResponse, true); err != nil {
+		log.Error(err)
+		return nil, fmt.Errorf(err.Data.Error)
 	}
 
 	return &formResponse, nil
 }
 
+// Get form with responses for a form using formID
 func (c *Client) GetResponses(formID string) (*models.Form, error) {
-	req, err := http.NewRequest("GET", c.BaseUrl+"/forms/"+formID+"/responses", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("PubKey", c.PubKey)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
 	var responseResponse models.FormResponse
-	if err := json.NewDecoder(resp.Body).Decode(&responseResponse); err != nil {
-		fmt.Println(err)
-		return nil, err
+	err := c.doRequest(http.MethodGet, fmt.Sprintf("%s/%s/responses", constants.API_FORMS_PATH, formID), nil, &responseResponse, true)
+	if err != nil {
+		log.Error(err)
+		return nil, fmt.Errorf(err.Data.Error)
 	}
 
 	return &responseResponse.Data, nil
+}
+
+// doRequest performs the HTTP request
+func (s *Client) doRequest(method, path string, data interface{}, response interface{}, auth bool) *models.ApiError {
+	url := fmt.Sprintf("%s%s", s.baseURL, path)
+
+	var buf bytes.Buffer
+	if data != nil {
+		if err := json.NewEncoder(&buf).Encode(data); err != nil {
+			return models.ErrorToApiError(err)
+		}
+	}
+
+	req, err := http.NewRequest(method, url, &buf)
+	if err != nil {
+		return models.ErrorToApiError(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if auth {
+		req.Header.Set(constants.API_AUTH_HEADER, s.pubKey)
+	}
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return models.ErrorToApiError(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		var apiErr models.ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&apiErr); err != nil {
+			return models.ErrorToApiError(err)
+		}
+
+		return &apiErr
+	}
+
+	if response != nil {
+		if err := json.NewDecoder(resp.Body).Decode(response); err != nil {
+			return models.ErrorToApiError(err)
+		}
+	}
+
+	return nil
 }

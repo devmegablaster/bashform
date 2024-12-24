@@ -59,19 +59,14 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) View() string {
-	if m.sizeError {
-		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, 50, 30, m.width, m.height))
-	}
-
 	var content string
-
 	content = m.questionsForm.View()
 
-	if m.isCreating {
-		content = styles.Succes.Render(constants.MessageFormCreating)
-	}
+	switch {
+	case m.sizeError:
+		return styles.Error.Render(fmt.Sprintf(constants.MessageSizeError, 50, 30, m.width, m.height))
 
-	if m.isCreated {
+	case m.isCreated:
 		content = styles.Succes.Render(constants.MessageFormCreated) +
 			"\n\n" +
 			styles.Description.Render(constants.MessageCommandHeader) +
@@ -79,13 +74,14 @@ func (m *Model) View() string {
 			styles.Heading.Render(fmt.Sprintf(constants.MessageCommand, m.cfg.SSH.URL, m.formResp.Data.Code)) +
 			"\n\n" +
 			styles.Description.Render(constants.MessageHelpExit)
-	}
 
-	if m.err != nil {
+	case m.isCreating:
+		content = styles.Heading.Render(constants.MessageFormCreating)
+
+	case m.err != nil:
 		content = styles.Error.Render(fmt.Sprintf(constants.MessageFormCreateError, m.err.Error()))
-	}
 
-	if m.init {
+	case m.init:
 		return styles.PlaceCenter(m.width, m.height, constants.Logo)
 	}
 
@@ -120,7 +116,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.questionsForm = f
 	}
 
-	if m.questionsForm.State == huh.StateCompleted && !m.isCreating {
+	if m.questionsForm.State == huh.StateCompleted && !m.isCreating && !m.isCreated {
 		m.CreateRequest()
 	}
 
@@ -146,4 +142,5 @@ func (m *Model) CreateRequest() {
 	m.formResp = form
 
 	m.isCreated = true
+	m.isCreating = false
 }
