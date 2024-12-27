@@ -25,3 +25,20 @@ func (s *SSHServer) handleAuth(ctx ssh.Context, key ssh.PublicKey) bool {
 	ctx.SetValue("user", user)
 	return true
 }
+
+func (s *SSHServer) addUsername(next ssh.Handler) ssh.Handler {
+	return func(sess ssh.Session) {
+		user := sess.Context().Value("user").(*models.User)
+		if user.Name == "" && sess.User() != "" {
+			user.Name = sess.User()
+			if err := s.userSvc.Update(user); err != nil {
+				slog.Error("Failed to update user", "error", err)
+				return
+			}
+
+			slog.Info("🔑 Updated user name", slog.String("user", user.ID.String()), slog.String("name", user.Name))
+		}
+
+		next(sess)
+	}
+}

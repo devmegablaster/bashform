@@ -36,7 +36,8 @@ func (s *SSHServer) initSSHServer() error {
 		wish.WithMiddleware(
 			s.handleCmd,
 			activeterm.Middleware(),
-			s.Logger,
+			s.logger,
+			s.addUsername,
 		),
 	)
 

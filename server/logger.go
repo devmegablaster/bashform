@@ -2,14 +2,17 @@ package server
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/charmbracelet/ssh"
 )
 
-func (s *SSHServer) Logger(next ssh.Handler) ssh.Handler {
+func (s *SSHServer) logger(next ssh.Handler) ssh.Handler {
 	return func(sess ssh.Session) {
-		slog.Info("New Connection", "remote_addr", sess.RemoteAddr(), "user", sess.User(), "command", sess.Command())
+		init := time.Now()
+		slog.Info("New Connection", "remote_addr", sess.RemoteAddr(), "username", sess.User(), "command", sess.Command())
 		next(sess)
-		slog.Info("Connection Closed", "remote_addr", sess.RemoteAddr(), "user", sess.User())
+		duration := time.Since(init)
+		slog.Info("Connection Closed", "remote_addr", sess.RemoteAddr(), "username", sess.User(), "duration", duration.Round(time.Second).String())
 	}
 }

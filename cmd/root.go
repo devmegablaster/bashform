@@ -37,7 +37,7 @@ func NewCLI(cfg config.Config, db *database.Database, session ssh.Session) *CLI 
 
 	u := session.Context().Value("user").(*models.User)
 
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{})).With("user", u.ID)
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{})).With("user", u.ID).With("username", u.Name)
 
 	c := &CLI{
 		cfg:         cfg,
@@ -45,8 +45,8 @@ func NewCLI(cfg config.Config, db *database.Database, session ssh.Session) *CLI 
 		user:        u,
 		RootCmd:     rootCmd,
 		logger:      logger,
-		formSvc:     services.NewFormService(cfg, db),
-		responseSvc: services.NewResponseService(cfg, db),
+		formSvc:     services.NewFormService(cfg, db, logger),
+		responseSvc: services.NewResponseService(cfg, db, logger),
 	}
 
 	c.Init()

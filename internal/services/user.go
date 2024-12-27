@@ -46,3 +46,14 @@ func (s *UserService) GetByPubKey(pubKey string) (*models.User, error) {
 
 	return user, nil
 }
+
+// update a user using user strcut
+func (s *UserService) Update(user *models.User) error {
+	err := s.ur.Update(user)
+	if err != nil {
+		slog.Error("Failed to update user", "error", err)
+		return fmt.Errorf("Failed to update user")
+	}
+
+	return nil
+}
