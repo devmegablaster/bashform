@@ -4,12 +4,9 @@ ssh:
   port: 22
   key_path: ./.ssh/id_ed25519
 
-api:
-  base_url: http://bashform-api:8000
-
 database:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  name: postgres
+  host: ${POSTGRES_HOST}
+  port: ${POSTGRES_PORT}
+  user: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
+  name: ${POSTGRES_NAME}

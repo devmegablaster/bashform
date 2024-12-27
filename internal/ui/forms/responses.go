@@ -1,7 +1,6 @@
 package forms
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -104,7 +103,6 @@ func (m *responsesModel) View() string {
 func (m *responsesModel) GetResponses() {
 	formWithResponses, err := m.formSvc.GetWithResponses(m.formID, m.user)
 	if err != nil {
-		fmt.Println(err)
 		m.responseError = err
 	}
 
