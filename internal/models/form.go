@@ -9,50 +9,24 @@ import (
 )
 
 type Form struct {
-	ID          uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	Name        string     `gorm:"type:varchar(255);not null" json:"name"`
-	Description string     `gorm:"type:varchar(255);" json:"description"`
-	Code        string     `gorm:"type:varchar(20);not null;unique" json:"code"`
-	Questions   []Question `gorm:"foreignKey:FormID" json:"questions"`
-	Responses   []Response `gorm:"foreignKey:FormID" json:"responses"`
-	UserID      uuid.UUID  `gorm:"type:uuid;not null" json:"user_id"`
-	Multiple    bool       `gorm:"type:boolean;not null" json:"multiple"`
-	CreatedAt   time.Time  `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time  `json:"updatedAt" gorm:"autoUpdateTime"`
+	ID          uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	Name        string     `gorm:"type:varchar(255);not null"`
+	Description string     `gorm:"type:varchar(255);"`
+	Code        string     `gorm:"type:varchar(20);not null;unique"`
+	Questions   []Question `gorm:"foreignKey:FormID"`
+	Responses   []Response `gorm:"foreignKey:FormID"`
+	UserID      uuid.UUID  `gorm:"type:uuid;not null"`
+	Multiple    bool       `gorm:"type:boolean;not null"`
+	CreatedAt   time.Time  `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `gorm:"autoUpdateTime"`
 }
 
 type FormRequest struct {
-	Name        string            `json:"name" validate:"required"`
-	Description string            `json:"description"`
-	Questions   []QuestionRequest `json:"questions" validate:"required"`
-	Code        string            `json:"code" validate:"min=1,max=20"`
-	Multiple    bool              `json:"multiple"`
-}
-
-type FormResponse struct {
-	ID          uuid.UUID          `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	Code        string             `json:"code"`
-	Questions   []QuestionResponse `json:"questions"`
-	UserID      uuid.UUID          `json:"user_id"`
-	Multiple    bool               `json:"multiple"`
-}
-
-func (f *Form) ToResponse() FormResponse {
-	questions := make([]QuestionResponse, len(f.Questions))
-	for i, q := range f.Questions {
-		questions[i] = q.ToResponse()
-	}
-
-	return FormResponse{
-		ID:        f.ID,
-		Name:      f.Name,
-		Code:      f.Code,
-		Questions: questions,
-		UserID:    f.UserID,
-		Multiple:  f.Multiple,
-	}
+	Name        string `validate:"required"`
+	Description string
+	Questions   []QuestionRequest `validate:"required"`
+	Code        string            `validate:"required"`
+	Multiple    bool
 }
 
 func (f *FormRequest) ToForm(userID uuid.UUID) Form {
@@ -110,4 +84,20 @@ func (f Form) ToHuhForm() *huh.Form {
 
 	form := huh.NewForm(rootGroup).WithTheme(huh.ThemeCharm())
 	return form
+}
+
+func (f *Form) ToItem() Item {
+	return Item{
+		ID:   f.ID.String(),
+		Name: f.Name,
+		Desc: f.Code,
+	}
+}
+
+func FormsToItems(forms []Form) []Item {
+	items := []Item{}
+	for _, form := range forms {
+		items = append(items, form.ToItem())
+	}
+	return items
 }
