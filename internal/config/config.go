@@ -10,7 +10,6 @@ import (
 
 type Config struct {
 	SSH      SSHConfig      `mapstructure:"ssh"`
-	Api      ApiConfig      `mapstructure:"api"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Crypto   CryptoConfig   `mapstructure:"crypto"`
 }
@@ -32,10 +31,6 @@ type DatabaseConfig struct {
 
 type CryptoConfig struct {
 	AESKey string `mapstructure:"aes_key"`
-}
-
-type ApiConfig struct {
-	BaseURL string `mapstructure:"base_url"`
 }
 
 func New() Config {
