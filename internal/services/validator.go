@@ -1,7 +1,8 @@
 package services
 
 import (
-	"github.com/devmegablaster/bashform/internal/types"
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -16,16 +17,22 @@ func NewValidator() *Validator {
 }
 
 // Validate a struct using the validator
-func (v *Validator) Validate(i interface{}) types.ServiceErrors {
+func (v *Validator) Validate(i interface{}) error {
 	if err := v.v.Struct(i); err != nil {
-		return v.parseError(err)
+		errors := v.parseError(err)
+		errStr := ""
+		for field, err := range errors {
+			errStr += field + ": " + err + ", "
+		}
+
+		return fmt.Errorf("Validation errors: %s", errStr)
 	}
 	return nil
 }
 
 // parseError takes a validation error and returns a map of field names to error messages
-func (v *Validator) parseError(err error) types.ServiceErrors {
-	errors := types.ServiceErrors{}
+func (v *Validator) parseError(err error) map[string]string {
+	errors := make(map[string]string)
 	for _, err := range err.(validator.ValidationErrors) {
 		errors[err.Field()] = err.Tag()
 	}
