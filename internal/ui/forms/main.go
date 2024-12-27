@@ -63,7 +63,7 @@ type Model struct {
 	sizeError     bool
 }
 
-func NewModel(items []models.Item, client *services.Client, session ssh.Session) *Model {
+func NewModel(items []models.Item, formSvc *services.FormService, session ssh.Session) *Model {
 	p, _, _ := session.Pty()
 
 	sizeErr := false
@@ -75,8 +75,8 @@ func NewModel(items []models.Item, client *services.Client, session ssh.Session)
 		width:      p.Window.Width,
 		height:     p.Window.Height,
 		state:      formsView,
-		formsModel: newFormsModel(items, client, session),
-		rsm:        newResponsesModel(client, session),
+		formsModel: newFormsModel(items, session),
+		rsm:        newResponsesModel(formSvc, session),
 		rm:         NewResponseModel(session),
 		sizeError:  sizeErr,
 	}

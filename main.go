@@ -2,69 +2,60 @@ package main
 
 import (
 	"context"
-	"errors"
-	"net"
+	"log/slog"
 	"os"
 	"os/signal"
-	"strconv"
+	"sync"
 	"syscall"
-	"time"
 
-	"github.com/charmbracelet/log"
-	"github.com/charmbracelet/ssh"
-	"github.com/charmbracelet/wish"
-	"github.com/charmbracelet/wish/activeterm"
-	"github.com/charmbracelet/wish/logging"
-
-	"github.com/devmegablaster/bashform/cmd"
 	"github.com/devmegablaster/bashform/internal/config"
+	"github.com/devmegablaster/bashform/internal/database"
+	"github.com/devmegablaster/bashform/internal/logger"
+	"github.com/devmegablaster/bashform/server"
 )
 
 func main() {
 
+	logger.SetDefault()
+
 	cfg := config.New()
 
-	s, err := wish.NewServer(
-		wish.WithAddress(net.JoinHostPort(cfg.SSH.Host, strconv.Itoa(cfg.SSH.Port))),
-		wish.WithHostKeyPath(cfg.SSH.KeyPath),
-		wish.WithPublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
-			return true
-		}),
-		wish.WithMiddleware(
-			func(next ssh.Handler) ssh.Handler {
-				return func(s ssh.Session) {
-					cli := cmd.NewCLI(cfg, s)
-					cli.Init()
-					if err := cli.Run(); err != nil {
-						log.Error("Could not run command", "error", err)
-					}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-					next(s)
-				}
-			},
-			activeterm.Middleware(),
-			logging.Middleware(),
-		),
-	)
+	wg := &sync.WaitGroup{}
+
+	db, err := database.New(ctx, wg, cfg.Database)
 	if err != nil {
-		log.Error("Could not start server", "error", err)
+		slog.Error("❌ Could not connect to database", "error", err)
+		os.Exit(1)
 	}
 
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Info("Starting SSH server", "host", cfg.SSH.Host, "port", cfg.SSH.Port)
+	s, err := server.NewSSHServer(wg, cfg, db)
+	if err != nil {
+		slog.Error("❌ Could not create server", "error", err)
+		os.Exit(1)
+	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	errChan := make(chan error, 1)
 	go func() {
-		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-			log.Error("Could not start server", "error", err)
-			done <- nil
+		if err := s.ListenAndServe(ctx); err != nil {
+			errChan <- err
 		}
 	}()
 
-	<-done
-	log.Info("Stopping SSH server")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() { cancel() }()
-	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-		log.Error("Could not stop server", "error", err)
+	select {
+	case err := <-errChan:
+		slog.Error("❌ Could not start server", "error", err)
+		os.Exit(1)
+
+	case sig := <-sigChan:
+		slog.Info("🚨 Shutting down gracefully", slog.String("signal", sig.String()))
+		cancel()
+		wg.Wait()
+		slog.Info("✅ Graceful shutdown complete")
 	}
 }

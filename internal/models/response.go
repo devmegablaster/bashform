@@ -1,11 +1,28 @@
 package models
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Response struct {
-	FormID  string   `json:"form_id"`
-	Answers []Answer `json:"answers"`
+	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	FormID    uuid.UUID `gorm:"type:uuid;not null"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null"`
+	Answers   []Answer  `gorm:"foreignKey:ResponseID"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
-type Answer struct {
-	QuestionID string `json:"question_id"`
-	Value      string `json:"value"`
+type ResponseRequest struct {
+	Answers []Answer `validate:"required"`
+}
+
+func (r *ResponseRequest) ToResponse(formID uuid.UUID, userID uuid.UUID) Response {
+	return Response{
+		UserID:  userID,
+		FormID:  formID,
+		Answers: r.Answers,
+	}
 }

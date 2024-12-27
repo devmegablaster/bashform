@@ -16,9 +16,10 @@ import (
 
 type Model struct {
 	width, height int
-	Form          models.Form
+	Form          *models.Form
+	responseSvc   *services.ResponseService
+	user          *models.User
 	session       ssh.Session
-	client        *services.Client
 	huhForm       *huh.Form
 	spinner       spinner.Model
 
@@ -30,7 +31,7 @@ type Model struct {
 	initTime      time.Time
 }
 
-func NewModel(form models.Form, client *services.Client, session ssh.Session) *Model {
+func NewModel(form *models.Form, responseSvc *services.ResponseService, session ssh.Session) *Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = styles.Succes
@@ -42,17 +43,20 @@ func NewModel(form models.Form, client *services.Client, session ssh.Session) *M
 		sizeErr = true
 	}
 
+	u := session.Context().Value("user").(*models.User)
+
 	return &Model{
-		Form:      form,
-		huhForm:   form.ToHuhForm(),
-		spinner:   s,
-		client:    client,
-		width:     pty.Window.Width,
-		height:    pty.Window.Height,
-		session:   session,
-		init:      true,
-		sizeError: sizeErr,
-		initTime:  time.Now(),
+		Form:        form,
+		responseSvc: responseSvc,
+		user:        u,
+		huhForm:     form.ToHuhForm(),
+		spinner:     s,
+		width:       pty.Window.Width,
+		height:      pty.Window.Height,
+		session:     session,
+		init:        true,
+		sizeError:   sizeErr,
+		initTime:    time.Now(),
 	}
 }
 
@@ -138,16 +142,15 @@ func (m *Model) Submit() {
 	for _, question := range m.Form.Questions {
 		answer = append(answer, models.Answer{
 			QuestionID: question.ID,
-			Value:      m.huhForm.GetString(question.ID),
+			Value:      m.huhForm.GetString(question.ID.String()),
 		})
 	}
 
-	response := models.Response{
-		FormID:  m.Form.ID,
+	respReq := models.ResponseRequest{
 		Answers: answer,
 	}
 
-	err := m.client.SubmitForm(m.Form.ID, response)
+	_, err := m.responseSvc.Create(respReq, m.Form.ID, m.user)
 	if err != nil {
 		m.submitError = err
 		m.isSubmitting = false

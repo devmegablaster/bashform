@@ -1,7 +1,6 @@
 package forms
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -22,7 +21,8 @@ type responsesModel struct {
 	formID        string
 	Form          models.Form
 	session       ssh.Session
-	client        *services.Client
+	user          *models.User
+	formSvc       *services.FormService
 	table         table.Model
 
 	sizeError     bool
@@ -31,7 +31,7 @@ type responsesModel struct {
 	initTime      time.Time
 }
 
-func newResponsesModel(client *services.Client, session ssh.Session) *responsesModel {
+func newResponsesModel(formSvc *services.FormService, session ssh.Session) *responsesModel {
 	pty, _, _ := session.Pty()
 
 	sizeErr := false
@@ -46,13 +46,16 @@ func newResponsesModel(client *services.Client, session ssh.Session) *responsesM
 
 	t.SetStyles(styles.TableStyle())
 
+	u := session.Context().Value("user").(*models.User)
+
 	return &responsesModel{
 		Form:      models.Form{},
-		client:    client,
+		formSvc:   formSvc,
 		table:     t,
 		width:     pty.Window.Width,
 		height:    pty.Window.Height,
 		session:   session,
+		user:      u,
 		init:      true,
 		sizeError: sizeErr,
 		initTime:  time.Now(),
@@ -98,13 +101,12 @@ func (m *responsesModel) View() string {
 }
 
 func (m *responsesModel) GetResponses() {
-	responses, err := m.client.GetResponses(m.formID)
+	formWithResponses, err := m.formSvc.GetWithResponses(m.formID, m.user)
 	if err != nil {
-		fmt.Println(err)
 		m.responseError = err
 	}
 
-	m.Form = *responses
+	m.Form = *formWithResponses
 
 	var order []string
 	var columns []table.Column
@@ -113,7 +115,7 @@ func (m *responsesModel) GetResponses() {
 			Title: question.Text,
 			Width: m.width / (len(m.Form.Questions) + 2),
 		})
-		order = append(order, question.ID)
+		order = append(order, question.ID.String())
 	}
 
 	// TODO: This is a hack, need to fix this
@@ -122,7 +124,7 @@ func (m *responsesModel) GetResponses() {
 		var row table.Row
 		for _, id := range order {
 			for _, answer := range response.Answers {
-				if answer.QuestionID == id {
+				if answer.QuestionID.String() == id {
 					row = append(row, answer.Value)
 					break
 				}

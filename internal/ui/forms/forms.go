@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/ssh"
 	"github.com/devmegablaster/bashform/internal/constants"
 	"github.com/devmegablaster/bashform/internal/models"
-	"github.com/devmegablaster/bashform/internal/services"
 	"github.com/devmegablaster/bashform/internal/styles"
 )
 
@@ -17,7 +16,6 @@ type formsModel struct {
 	Items         []models.Item
 	list          list.Model
 	session       ssh.Session
-	client        *services.Client
 
 	isSubmitting  bool
 	sizeError     bool
@@ -27,7 +25,7 @@ type formsModel struct {
 	initTime      time.Time
 }
 
-func newFormsModel(items []models.Item, client *services.Client, session ssh.Session) *formsModel {
+func newFormsModel(items []models.Item, session ssh.Session) *formsModel {
 	pty, _, _ := session.Pty()
 
 	sizeErr := false
@@ -48,7 +46,6 @@ func newFormsModel(items []models.Item, client *services.Client, session ssh.Ses
 	return &formsModel{
 		Items:     items,
 		list:      l,
-		client:    client,
 		width:     pty.Window.Width,
 		height:    pty.Window.Height,
 		session:   session,
