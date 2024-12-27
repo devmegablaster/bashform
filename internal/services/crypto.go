@@ -17,6 +17,7 @@ func NewCryptoService(cfg config.CryptoConfig) *CryptoService {
 	}
 }
 
+// convert a byte slice to a base64 encoded string
 func (c *CryptoService) Base64Encode(data []byte) string {
 	encoded := bytes.Buffer{}
 	enc := base64.NewEncoder(base64.StdEncoding, &encoded)
@@ -24,3 +25,5 @@ func (c *CryptoService) Base64Encode(data []byte) string {
 
 	return encoded.String()
 }
+
+// TODO: Implement encryption and decryption methods

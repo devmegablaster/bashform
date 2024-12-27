@@ -1,11 +1,13 @@
 package services
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/devmegablaster/bashform/internal/config"
 	"github.com/devmegablaster/bashform/internal/database"
 	"github.com/devmegablaster/bashform/internal/models"
 	"github.com/devmegablaster/bashform/internal/repository"
-	"github.com/devmegablaster/bashform/internal/types"
 )
 
 type UserService struct {
@@ -22,20 +24,24 @@ func NewUserService(cfg config.Config, db *database.Database) *UserService {
 	}
 }
 
+// create a new user using the user request
 func (s *UserService) Create(userReq models.UserRequest) (*models.User, error) {
 	user := userReq.ToUser()
 	err := s.ur.Create(&user)
 	if err != nil {
-		return nil, types.ServiceErrors{"error": err.Error()}
+		slog.Error("Failed to create user", "error", err)
+		return nil, fmt.Errorf("Failed to create user")
 	}
 
 	return &user, nil
 }
 
+// get a user by their public key
 func (s *UserService) GetByPubKey(pubKey string) (*models.User, error) {
 	user, err := s.ur.GetByPubKey(pubKey)
 	if err != nil {
-		return nil, types.ServiceErrors{"error": err.Error()}
+		slog.Error("Failed to get user", "error", err)
+		return nil, fmt.Errorf("Failed to get user")
 	}
 
 	return user, nil

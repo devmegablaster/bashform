@@ -15,6 +15,7 @@ func NewValidator() *Validator {
 	}
 }
 
+// Validate a struct using the validator
 func (v *Validator) Validate(i interface{}) types.ServiceErrors {
 	if err := v.v.Struct(i); err != nil {
 		return v.parseError(err)
@@ -22,6 +23,7 @@ func (v *Validator) Validate(i interface{}) types.ServiceErrors {
 	return nil
 }
 
+// parseError takes a validation error and returns a map of field names to error messages
 func (v *Validator) parseError(err error) types.ServiceErrors {
 	errors := types.ServiceErrors{}
 	for _, err := range err.(validator.ValidationErrors) {
