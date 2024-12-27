@@ -10,12 +10,13 @@ import (
 
 	"github.com/devmegablaster/bashform/internal/config"
 	"github.com/devmegablaster/bashform/internal/database"
+	"github.com/devmegablaster/bashform/internal/logger"
 	"github.com/devmegablaster/bashform/server"
 )
 
 func main() {
 
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{})))
+	logger.SetDefault()
 
 	cfg := config.New()
 
@@ -48,7 +49,7 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		slog.Error("Could not start server", "error", err)
+		slog.Error("❌ Could not start server", "error", err)
 		os.Exit(1)
 
 	case sig := <-sigChan:

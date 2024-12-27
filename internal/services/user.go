@@ -22,16 +22,17 @@ func NewUserService(cfg config.Config, db *database.Database) *UserService {
 	}
 }
 
-func (s *UserService) Create(user *models.User) error {
-	err := s.ur.Create(user)
+func (s *UserService) Create(userReq models.UserRequest) (*models.User, error) {
+	user := userReq.ToUser()
+	err := s.ur.Create(&user)
 	if err != nil {
-		return err
+		return nil, types.ServiceErrors{"error": err.Error()}
 	}
 
-	return nil
+	return &user, nil
 }
 
-func (s *UserService) GetByPubKey(pubKey string) (*models.User, types.ServiceErrors) {
+func (s *UserService) GetByPubKey(pubKey string) (*models.User, error) {
 	user, err := s.ur.GetByPubKey(pubKey)
 	if err != nil {
 		return nil, types.ServiceErrors{"error": err.Error()}

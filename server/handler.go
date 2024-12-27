@@ -10,7 +10,7 @@ import (
 func (s *SSHServer) handleCmd(next ssh.Handler) ssh.Handler {
 	return func(sess ssh.Session) {
 		if err := s.executeCommand(sess); err != nil {
-			slog.Error("Command execution failed", "error", err)
+			slog.Error("❌ Command execution failed", "error", err)
 			return
 		}
 		next(sess)
