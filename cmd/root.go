@@ -1,29 +1,31 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/base64"
+	"log/slog"
+	"os"
 
 	"github.com/charmbracelet/ssh"
 	"github.com/devmegablaster/bashform/internal/config"
 	"github.com/devmegablaster/bashform/internal/constants"
+	"github.com/devmegablaster/bashform/internal/database"
+	"github.com/devmegablaster/bashform/internal/models"
+	"github.com/devmegablaster/bashform/internal/services"
 	"github.com/spf13/cobra"
 )
 
 type CLI struct {
-	cfg     config.Config
-	Session ssh.Session
-	PubKey  string
-	RootCmd *cobra.Command
+	cfg      config.Config
+	database *database.Database
+	Session  ssh.Session
+	user     *models.User
+	RootCmd  *cobra.Command
+	logger   *slog.Logger
+
+	formSvc     *services.FormService
+	responseSvc *services.ResponseService
 }
 
-func NewCLI(cfg config.Config, session ssh.Session) *CLI {
-
-	// Encode the public key
-	encoded := bytes.Buffer{}
-	enc := base64.NewEncoder(base64.StdEncoding, &encoded)
-	enc.Write(session.PublicKey().Marshal())
-
+func NewCLI(cfg config.Config, db *database.Database, session ssh.Session) *CLI {
 	rootCmd := &cobra.Command{
 		Use: "bashform",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,12 +35,22 @@ func NewCLI(cfg config.Config, session ssh.Session) *CLI {
 		},
 	}
 
-	return &CLI{
-		cfg:     cfg,
-		Session: session,
-		PubKey:  encoded.String(),
-		RootCmd: rootCmd,
+	u := session.Context().Value("user").(*models.User)
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{})).With("user", u.ID)
+
+	c := &CLI{
+		cfg:         cfg,
+		Session:     session,
+		user:        u,
+		RootCmd:     rootCmd,
+		logger:      logger,
+		formSvc:     services.NewFormService(cfg, db),
+		responseSvc: services.NewResponseService(cfg, db),
 	}
+
+	c.Init()
+	return c
 }
 
 func (c *CLI) AddCommand(cmd *cobra.Command) {

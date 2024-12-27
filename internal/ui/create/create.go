@@ -17,11 +17,12 @@ import (
 type Model struct {
 	width, height int
 	cfg           config.Config
-	client        *services.Client
+	formSvc       *services.FormService
+	user          *models.User
 	code          string
 	n             int
 	questionsForm *huh.Form
-	formResp      *models.FormResponse
+	form          *models.Form
 
 	isCreating bool
 	isCreated  bool
@@ -31,7 +32,7 @@ type Model struct {
 	initTime   time.Time
 }
 
-func NewModel(cfg config.Config, session ssh.Session, n int, code string, client *services.Client) *Model {
+func NewModel(cfg config.Config, session ssh.Session, n int, code string, formSvc *services.FormService) *Model {
 	pty, _, _ := session.Pty()
 
 	sizeErr := false
@@ -39,13 +40,16 @@ func NewModel(cfg config.Config, session ssh.Session, n int, code string, client
 		sizeErr = true
 	}
 
+	u := session.Context().Value("user").(*models.User)
+
 	return &Model{
 		width:         pty.Window.Width,
 		height:        pty.Window.Height,
 		cfg:           cfg,
 		code:          code,
 		n:             n,
-		client:        client,
+		formSvc:       formSvc,
+		user:          u,
 		questionsForm: starterForm(n),
 
 		sizeError: sizeErr,
@@ -71,7 +75,7 @@ func (m *Model) View() string {
 			"\n\n" +
 			styles.Description.Render(constants.MessageCommandHeader) +
 			"\n" +
-			styles.Heading.Render(fmt.Sprintf(constants.MessageCommand, m.cfg.SSH.URL, m.formResp.Data.Code)) +
+			styles.Heading.Render(fmt.Sprintf(constants.MessageCommand, m.cfg.SSH.URL, m.form.Code)) +
 			"\n\n" +
 			styles.Description.Render(constants.MessageHelpExit)
 
@@ -133,13 +137,13 @@ func (m *Model) CreateRequest() {
 	formRequest := huhToForm(m.n, m.questionsForm)
 	formRequest.Code = m.code
 
-	form, err := m.client.CreateForm(*formRequest)
+	form, err := m.formSvc.Create(formRequest, m.user)
 	if err != nil {
 		m.err = err
 		return
 	}
 
-	m.formResp = form
+	m.form = form
 
 	m.isCreated = true
 	m.isCreating = false

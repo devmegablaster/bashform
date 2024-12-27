@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -8,8 +9,10 @@ import (
 )
 
 type Config struct {
-	SSH SSHConfig `mapstructure:"ssh"`
-	Api ApiConfig `mapstructure:"api"`
+	SSH      SSHConfig      `mapstructure:"ssh"`
+	Api      ApiConfig      `mapstructure:"api"`
+	Database DatabaseConfig `mapstructure:"database"`
+	Crypto   CryptoConfig   `mapstructure:"crypto"`
 }
 
 type SSHConfig struct {
@@ -17,6 +20,18 @@ type SSHConfig struct {
 	Host    string `mapstructure:"host"`
 	Port    int    `mapstructure:"port"`
 	KeyPath string `mapstructure:"key_path"`
+}
+
+type DatabaseConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Name     string `mapstructure:"name"`
+}
+
+type CryptoConfig struct {
+	AESKey string `mapstructure:"aes_key"`
 }
 
 type ApiConfig struct {
@@ -33,6 +48,8 @@ func New() Config {
 	if err := viper.Unmarshal(&config); err != nil {
 		panic(err)
 	}
+
+	slog.Info("✅ Config loaded")
 
 	return config
 }

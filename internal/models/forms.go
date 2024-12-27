@@ -6,7 +6,7 @@ type FormsResponse struct {
 
 func (f *Form) ToItem() Item {
 	return Item{
-		ID:   f.ID,
+		ID:   f.ID.String(),
 		Name: f.Name,
 		Desc: f.Code,
 	}

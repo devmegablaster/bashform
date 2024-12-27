@@ -9,12 +9,15 @@ import (
 
 func (s *SSHServer) handleCmd(next ssh.Handler) ssh.Handler {
 	return func(sess ssh.Session) {
-		cli := cmd.NewCLI(s.cfg, sess)
-		cli.Init()
-		if err := cli.Run(); err != nil {
-			slog.Error("Could not run command", "error", err)
+		if err := s.executeCommand(sess); err != nil {
+			slog.Error("Command execution failed", "error", err)
+			return
 		}
-
 		next(sess)
 	}
+}
+
+func (s *SSHServer) executeCommand(sess ssh.Session) error {
+	cli := cmd.NewCLI(s.cfg, s.db, sess)
+	return cli.Run()
 }

@@ -1,13 +1,12 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
 	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/log"
 	"github.com/devmegablaster/bashform/internal/constants"
-	"github.com/devmegablaster/bashform/internal/services"
 	"github.com/devmegablaster/bashform/internal/styles"
 	"github.com/devmegablaster/bashform/internal/ui/create"
 	"github.com/spf13/cobra"
@@ -38,19 +37,14 @@ func (c *CLI) createForm() *cobra.Command {
 				code = args[1]
 			}
 
-			client := services.NewClient(c.cfg.Api.BaseURL, c.PubKey)
-			check, err := client.CheckCode(code)
+			avl := c.formSvc.CheckCodeAvailability(code)
 
-			if !check {
+			if !avl {
 				cmd.Println(styles.Error.Render(constants.MessageCodeNotAvailable))
 				return nil
 			}
 
-			if err != nil {
-				cmd.Println(styles.Error.Render("Error checking code"))
-			}
-
-			cr := create.NewModel(c.cfg, c.Session, n, code, client)
+			cr := create.NewModel(c.cfg, c.Session, n, code, c.formSvc)
 
 			p := tea.NewProgram(cr,
 				tea.WithAltScreen(),
@@ -58,7 +52,7 @@ func (c *CLI) createForm() *cobra.Command {
 				tea.WithOutput(c.Session))
 
 			if _, err := p.Run(); err != nil {
-				log.Error("Could not run program", "error", err)
+				slog.Error("Error running program", "error", err)
 				os.Exit(1)
 			}
 
