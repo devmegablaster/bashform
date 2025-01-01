@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/devmegablaster/bashform/internal/config"
 	"github.com/devmegablaster/bashform/internal/database"
@@ -113,4 +114,25 @@ func (f *FormService) GetWithResponses(formID string, user *models.User) (*model
 	}
 
 	return formWithResponses, nil
+}
+
+func (f *FormService) GetResponsesCSV(formCode string, user *models.User) (string, error) {
+	form, err := f.fr.GetWithResponsesUsingCode(user.ID.String(), formCode)
+	if err != nil {
+		return "", err
+	}
+
+	rows := []string{}
+	questions := []string{}
+	for _, question := range form.Questions {
+		questions = append(questions, question.Text)
+	}
+
+	rows = append(rows, strings.Join(questions, ","))
+
+	for _, response := range form.Responses {
+		rows = append(rows, strings.Join(response.ToCSV(), ","))
+	}
+
+	return strings.Join(rows, "\n"), nil
 }

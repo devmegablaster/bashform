@@ -62,3 +62,13 @@ func (r *FormRepository) GetWithResponses(userID, formID string) (*models.Form, 
 
 	return &form, nil
 }
+
+func (r *FormRepository) GetWithResponsesUsingCode(userID, code string) (*models.Form, error) {
+	var form models.Form
+
+	if err := r.db.DB.Preload("Responses.Answers").Preload("Questions").First(&form, "code = ? AND user_id = ?", code, userID).Error; err != nil {
+		return nil, err
+	}
+
+	return &form, nil
+}

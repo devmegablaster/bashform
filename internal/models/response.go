@@ -26,3 +26,11 @@ func (r *ResponseRequest) ToResponse(formID uuid.UUID, userID uuid.UUID) Respons
 		Answers: r.Answers,
 	}
 }
+
+func (r *Response) ToCSV() []string {
+	csv := []string{}
+	for _, answer := range r.Answers {
+		csv = append(csv, answer.Value)
+	}
+	return csv
+}

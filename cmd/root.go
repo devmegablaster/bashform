@@ -68,6 +68,7 @@ func (c *CLI) Init() {
 	c.AddCommand(c.fillForm())
 	c.AddCommand(c.createForm())
 	c.AddCommand(c.getForms())
+	c.AddCommand(c.exportResponses())
 }
 
 func (c *CLI) Run() error {
